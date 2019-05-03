@@ -1,0 +1,11 @@
+---
+- name: Search for and download updates
+  hosts: infra-servers
+  become: yes
+  tasks: 
+  - name: running apt-get upgrade
+    apt: name=* state=latest update_cache=yes
+    when: ansible_facts['os_family'] == "Debian"
+  - name: running yum upgrade
+    apt: name=* state=latest update_cache=yes
+    when: ansible_facts['os_family'] == "Red Hat Enterprise Linux"

@@ -1,0 +1,34 @@
+---
+- name: Install Elasticsearch
+  hosts: infra1.kierandunbar.com
+  become: yes
+  tasks:
+  - name: Add the Elastic key to apt
+    apt_key: 
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present
+  - name: enable the https download of elasticsearch
+    apt: name=apt-transport-https state=present
+  - name: add the ElasticSearch repo
+    lineinfile:
+      line: 'deb https://artifacts.elastic.co/packages/7.x/apt stable main'
+      state: present
+      path: /etc/apt/sources.list.d/elastic-7.x.list
+      create: yes
+  - name: install ElasticSearch from the repo
+    apt:
+      name: elasticsearch
+      state: present
+      update_cache: yes
+    notify: fresh install
+  handlers:
+  - name: Enable systemd journaling
+    lineinfile:
+      line: 'ExecStart=/usr/share/elasticsearch/bin/elasticsearch -p ${PID_DIR}/elasticsearch.pid'  
+      state: present
+      path: /usr/lib/systemd/system/elasticsearch.service
+      regexp: '^ExecStart=*'
+    listen: "fresh install"
+  - name: Restart ElasticSearch
+    service: name=elasticsearch state=restarted
+    listen: "fresh install"
