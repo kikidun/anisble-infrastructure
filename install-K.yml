@@ -1,0 +1,48 @@
+---
+- name: Install Kibana
+  hosts: infra1.kierandunbar.com
+  become: yes
+  tasks:
+  - name: Add the Elastic key to apt
+    apt_key: 
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present
+  - name: enable the https download of apt files
+    apt: name=apt-transport-https state=present
+  - name: add the Elastic repo
+    lineinfile:
+      line: 'deb https://artifacts.elastic.co/packages/7.x/apt stable main'
+      state: present
+      path: /etc/apt/sources.list.d/elastic-7.x.list
+      create: yes
+  - name: install Kibana from the repo
+    apt:
+      name: kibana
+      state: present
+      update_cache: yes
+    notify: fresh install
+  - name: Open Firewall for Kibana
+    ufw:
+      rule: allow
+      proto: tcp
+      to_port: 5601
+      state: reloaded
+  handlers:
+#  - name: Enable systemd journaling
+#    lineinfile:
+#      line: 'ExecStart=/usr/share/kibana/bin/kibana -p ${PID_DIR}/kibana.pid'  
+#      state: present
+#      path: /usr/lib/systemd/system/kibana.service
+#      regexp: '^ExecStart=*'
+#    listen: "fresh install"
+  - name: Bind Kibana to our IP
+    lineinfile:
+      line: 'server.host: "infra1"'
+      state: present
+      path: /etc/kibana/kibana.yml
+      regexp: 'server\.host: \"\w+\"' 
+    listen: "fresh install"
+  - name: kibana
+    service: name=kibana state=started enabled=yes
+    listen: "fresh install"
+  
