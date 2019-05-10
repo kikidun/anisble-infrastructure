@@ -21,6 +21,12 @@
       state: present
       update_cache: yes
     notify: fresh install
+  - name: Open Firewall for ElasticSearch
+    ufw:
+      rule: allow
+      proto: tcp
+      to_port: 9200
+      state: reloaded
   handlers:
   - name: Enable systemd journaling
     lineinfile:
@@ -30,5 +36,5 @@
       regexp: '^ExecStart=*'
     listen: "fresh install"
   - name: Restart ElasticSearch
-    service: name=elasticsearch state=restarted
+    service: name=elasticsearch state=started enabled=yes
     listen: "fresh install"

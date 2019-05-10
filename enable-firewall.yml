@@ -1,0 +1,10 @@
+- name: Enable UFW and allow TCP 22 in for SSH
+  hosts: infra-servers
+  become: yes
+  tasks:
+  - name: Allow port 22 for SSH
+    ufw: 
+      rule: allow
+      port: 22
+      state: enabled
+ 
